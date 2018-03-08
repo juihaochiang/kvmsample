@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 #define KVM_DEVICE "/dev/kvm"
 #define RAM_SIZE 512000000
@@ -112,8 +114,16 @@ void *kvm_cpu_thread(void *data) {
 			printf("KVM_EXIT_SHUTDOWN\n");
 			goto exit_kvm;
 			break;
+        case KVM_EXIT_INTERNAL_ERROR:
+            ///* Emulate instruction failed. */
+            //#define KVM_INTERNAL_ERROR_EMULATION    1
+            //FIXME: see why we got this
+            printf("KVM_EXIT_INTERNAL_ERROR: suberror = 0x%x\n",
+                   kvm->vcpus->kvm_run->internal.suberror);
+            break;
 		default:
-			printf("KVM PANIC\n");
+			printf("KVM PANIC. exit_reason=0x%x\n",
+                   kvm->vcpus->kvm_run->exit_reason);
 			goto exit_kvm;
 		}
 	}
